@@ -33,11 +33,17 @@ public class RobotContainer {
 
     m_robotDrive.setDefaultCommand(
       new RunCommand(
-            () ->
-                m_robotDrive.arcadeDrive(
-                    -m_driveController.getLeftY(), m_driveController.getRightX()),
-            m_robotDrive)
+        () -> m_robotDrive.tunePID(),
+        m_robotDrive)
     );
+
+    // m_robotDrive.setDefaultCommand(
+    //   new RunCommand(
+    //         () ->
+    //             m_robotDrive.arcadeDrive(
+    //                 -m_driveController.getLeftY(), m_driveController.getRightX()),
+    //         m_robotDrive)
+    // );
 
   }
 
