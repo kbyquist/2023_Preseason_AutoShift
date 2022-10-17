@@ -7,8 +7,6 @@ package frc.robot.subsystems;
 import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ShiftConstants.*;
 
-import frc.robot.commands.Drive;
-
 import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
 
 import com.revrobotics.RelativeEncoder;
@@ -19,12 +17,15 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.*;
+import java.util.*;
 
 import static java.lang.Math.*;
 
@@ -36,8 +37,6 @@ public class DriveSubsystem extends SubsystemBase {
     HIGH,
     NEUTRAL
   }
-  /* PID Tuning */
-  public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
 
   /* Variables */
   boolean boolRobotTurning;
@@ -110,12 +109,30 @@ public class DriveSubsystem extends SubsystemBase {
   public double kFF = 0.000015; 
   public double kMaxOutput = 1; 
   public double kMinOutput = -1;
+  public double kSetPoint = 0;
 
   // Creates a SlewRateLimiter that limits the rate of change of the signal to defined constant units per second
   public double kSlewRateDrive = 3.5;
   public double kSlewRateRotate = 3.5;
   SlewRateLimiter rotateFilter;
   SlewRateLimiter driveFilter;
+
+  /** Shuffleboard Setup */
+  private ShuffleboardTab tabPID = Shuffleboard.getTab(kDriveTabName);
+  private NetworkTableEntry pGain = tabPID.add("P Gain", kP).getEntry();
+  private NetworkTableEntry iGain = tabPID.add("I Gain", kI).getEntry();
+  private NetworkTableEntry dGain = tabPID.add("D Gain", kD).getEntry();
+  private NetworkTableEntry iZone = tabPID.add("I Zone", kIz).getEntry();
+  private NetworkTableEntry fF = tabPID.add("Feed Forward", kFF).getEntry();
+  private NetworkTableEntry setPointEntry = 
+          tabPID.add("RPM", kSetPoint)
+          .withWidget(BuiltInWidgets.kNumberSlider)
+          .withProperties(Map.of("min", 0, "max", kMotorMaxRPM))
+          .getEntry();
+  private NetworkTableEntry reverseDirection = 
+          tabPID.add("Reverse Drive", false)
+          .withWidget(BuiltInWidgets.kToggleSwitch)
+          .getEntry();
 
 
   /** Creates a new Drivetrain. Initialize hardware here */
@@ -151,14 +168,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rightPIDController.setIZone(kIz);
     m_rightPIDController.setFF(kFF);
     m_rightPIDController.setOutputRange(kMinOutput, kMaxOutput);
-
-    SmartDashboard.putNumber("P Gain", kP);
-    SmartDashboard.putNumber("I Gain", kI);
-    SmartDashboard.putNumber("D Gain", kD);
-    SmartDashboard.putNumber("I Zone", kIz);
-    SmartDashboard.putNumber("Feed Forward", kFF);
-    SmartDashboard.putNumber("Max Output", kMaxOutput);
-    SmartDashboard.putNumber("Min Output", kMinOutput);
 
     /** Set Motor Inversions */
     //Right is inverted, left is not
@@ -246,7 +255,7 @@ public class DriveSubsystem extends SubsystemBase {
     setShiftState();
   }
 
-  private ShiftingState setCurrentShiftState(ShiftingState CurrentShiftState) {
+  private void setCurrentShiftState(ShiftingState CurrentShiftState) {
     shiftingStateCurrent = CurrentShiftState;
   }
 
@@ -254,7 +263,7 @@ public class DriveSubsystem extends SubsystemBase {
     return shiftingStateCurrent;
   }
 
-  private ShiftingState setDesiredShiftState(ShiftingState DesiredShiftingState) {
+  private void setDesiredShiftState(ShiftingState DesiredShiftingState) {
     shiftingStateDesired = DesiredShiftingState;
   }
 
@@ -263,9 +272,9 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void setShiftState() {
-    switch (getDesiredShifttState) {
+    switch (getDesiredShiftState()) {
       case LOW: //Upshifting
-        switch (getCurrentShiftState) {
+        switch (getCurrentShiftState()) {
           case HIGH:
             neutralGear();
             m_leftPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
@@ -316,7 +325,30 @@ public class DriveSubsystem extends SubsystemBase {
     }
   }
 
+  public void tunePID() {
+    double p = pGain.getDouble(0.);
+    double i = iGain.getDouble(0.);
+    double d = dGain.getDouble(0.);
+    double iz = iZone.getDouble(0.);
+    double ff = fF.getDouble(0.);
+    double setPoint = setPointEntry.getDouble(0.);
+    boolean driveReverse = reverseDirection.getBoolean(false);
 
+    // if PID coefficients on SmartDashboard have changed, write new values to controller
+    if((p != kP)) { m_leftPIDController.setP(p); kP = p; }
+    if((i != kI)) { m_leftPIDController.setI(i); kI = i; }
+    if((d != kD)) { m_leftPIDController.setD(d); kD = d; }
+    if((iz != kIz)) { m_leftPIDController.setIZone(iz); kIz = iz; }
+    if((ff != kFF)) { m_leftPIDController.setFF(ff); kFF = ff; }
+    if((setPoint != kSetPoint)) { kSetPoint = setPoint; }
+    if(driveReverse) {kSetPoint *= -1;}
+
+    
+    m_leftPIDController.setReference(kSetPoint, CANSparkMax.ControlType.kVelocity);
+    
+    SmartDashboard.putNumber("SetPoint", kSetPoint);
+    SmartDashboard.putNumber("ProcessVariable", m_leftMotorEncoder.getVelocity());
+  }
 
   /** lowGear is full retract = Air to PORT C */
   public void lowGear() {

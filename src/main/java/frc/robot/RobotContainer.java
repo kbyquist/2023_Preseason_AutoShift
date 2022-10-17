@@ -4,17 +4,11 @@
 
 package frc.robot;
 
-import frc.robot.Constants.ShiftConstants;
-
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
-import frc.robot.commands.Drive;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.OIConstants;
 
 import static java.lang.Math.*;
@@ -28,8 +22,6 @@ import static java.lang.Math.*;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-
-  private final Drive m_autoCommand = new Drive(m_robotDrive);
 
   PS4Controller m_driveController = new PS4Controller(OIConstants.kDriveControllerInput);
   XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerInput);
@@ -61,13 +53,13 @@ public class RobotContainer {
     // new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value);
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
-    return m_autoCommand;
-  }
+  // /**
+  //  * Use this to pass the autonomous command to the main {@link Robot} class.
+  //  *
+  //  * @return the command to run in autonomous
+  //  */
+  // public Command getAutonomousCommand() {
+  //   // An ExampleCommand will run in autonomous
+  //   return m_autoCommand;
+  // }
 }

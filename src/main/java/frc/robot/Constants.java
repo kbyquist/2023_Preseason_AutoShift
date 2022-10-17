@@ -42,6 +42,8 @@ public final class Constants {
         public static final double kLowGearSpeed = 5.35;
         public static final double kHighGearRatio = 7.29;
         public static final double kLowGearRatio = 15.;
+
+        public static final String kDriveTabName = "Drive Subsystem";
     }
 
     public static final class ShiftConstants {
