@@ -102,8 +102,8 @@ public class DriveSubsystem extends SubsystemBase {
   // private final DifferentialDrive m_drive = new DifferentialDrive(m_leftLead, m_rightLead);
 
   // PID coefficients
-  public double kP = 6e-5; 
-  public double kI = 0;
+  public double kP = 9e-5; //default = 6e-5 
+  public double kI = 8e-7; //default = 0
   public double kD = 0; 
   public double kIz = 0; 
   public double kFF = 0.000015; 
@@ -136,6 +136,9 @@ public class DriveSubsystem extends SubsystemBase {
   private NetworkTableEntry motorVelocity =
           tabPID.add("Current Velocity", 0.)
           .withWidget(BuiltInWidgets.kGraph)
+          .getEntry();
+  private NetworkTableEntry setPointGraph = 
+          tabPID.add("Setpoint Velocity", 0.)
           .getEntry();
 
 
@@ -351,6 +354,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_leftPIDController.setReference(kSetPoint, CANSparkMax.ControlType.kVelocity);
     
     motorVelocity.setDouble(getLeftMotorRPM());
+    setPointGraph.setDouble(kSetPoint);
   }
 
   /** lowGear is full retract = Air to PORT C */

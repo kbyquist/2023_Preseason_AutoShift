@@ -14,9 +14,9 @@ package frc.robot;
  */
 public final class Constants {
     public static final class DriveConstants {
-        public static final int kLeftLeadMotorID = 0;
-        public static final int kLeftFollowMotor1ID = 1;
-        public static final int kLeftFollowMotor2ID = 2;
+        public static final int kLeftLeadMotorID = 3;
+        public static final int kLeftFollowMotor1ID = 7;
+        public static final int kLeftFollowMotor2ID = 8;
         public static final int kRightLeadMotorID = 3;
         public static final int kRightFollowMotor1ID = 4;
         public static final int kRightFollowMotor2ID = 5;
