@@ -110,6 +110,7 @@ public class DriveSubsystem extends SubsystemBase {
   public double kMaxOutput = 1; 
   public double kMinOutput = -1;
   public double kSetPoint = 0;
+  public boolean kInvertMotor = false;
 
   // Creates a SlewRateLimiter that limits the rate of change of the signal to defined constant units per second
   public double kSlewRateDrive = 3.5;
@@ -140,7 +141,10 @@ public class DriveSubsystem extends SubsystemBase {
   private NetworkTableEntry setPointGraph = 
           tabPID.add("Setpoint Velocity", 0.)
           .getEntry();
-
+  private NetworkTableEntry motor_setInverted = 
+          tabPID.add("Motor Inversion", false)
+          .withWidget(BuiltInWidgets.kToggleSwitch)
+          .getEntry();
 
   /** Creates a new Drivetrain. Initialize hardware here */
   public DriveSubsystem() {
@@ -179,7 +183,7 @@ public class DriveSubsystem extends SubsystemBase {
     /** Set Motor Inversions */
     //Right is inverted, left is not
     // m_rightLead.setInverted(true); //only need to set Lead motors
-    m_leftLead.setInverted(false); //only need to set Lead motors
+    m_leftLead.setInverted(kInvertMotor); //only need to set Lead motors
 
     /** Encoder Conversion */
     // m_leftWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);
@@ -340,6 +344,7 @@ public class DriveSubsystem extends SubsystemBase {
     double ff = fF.getDouble(0.);
     double setPoint = setPointEntry.getDouble(0.);
     boolean driveReverse = reverseDirection.getBoolean(false);
+    boolean invertMotor = motor_setInverted.getBoolean(false);
 
     // if PID coefficients on SmartDashboard have changed, write new values to controller
     if((p != kP)) { m_leftPIDController.setP(p); kP = p; }
@@ -350,6 +355,8 @@ public class DriveSubsystem extends SubsystemBase {
     if((setPoint != kSetPoint)) { kSetPoint = setPoint; }
     if(driveReverse) {kSetPoint *= -1;}
 
+    //Need to test if setting the motor setInverted property affects which way is forward for the PID setReference method
+    if((invertMotor != kInvertMotor)) { m_leftLead.setInverted(kInvertMotor); kInvertMotor = invertMotor; }
     
     m_leftPIDController.setReference(kSetPoint, CANSparkMax.ControlType.kVelocity);
     
