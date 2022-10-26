@@ -4,14 +4,8 @@
 
 package frc.robot;
 
-/**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
- * globally (i.e. public static). Do not put anything functional in this class.
- *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
- */
+
+
 public final class Constants {
     public static final class DriveConstants {
         public static final int[] kLeftDriveMotors = new int[] {0,1,2};
@@ -31,7 +25,7 @@ public final class Constants {
         public static final boolean kRightWheelEncoderReversed = true;
         public static final int kWheelEncoderCountsPerRevolution = 2048;
 
-        public static final double kWheelDiameter = 4.;
+        public static final double kWheelDiameterIN = 4.;
         public static final double kHighGearSpeed = 11.;
         public static final double kLowGearSpeed = 5.35;
         public static final double kHighGearRatio = 7.29;
@@ -46,29 +40,38 @@ public final class Constants {
         public static final double kMinOutput = -1;
 
         public static final String kDriveTabName = "Drive Subsystem";
-    }
+        public static final double kTrackwidthMeters = 0.69;
 
-    public static final class ShiftConstants {
-        public static final int kMotorMaxRPM = 5700;
-        public static final double kUpshiftPercent = .85; //percentage of max to upshift at
-        public static final double kUpshiftThrottleMin = .15;
-        public static final double kDownshiftThrottleMin = .1;
-        public static final double kDownshiftPercent = .55;
-        public static final double kShiftDwellTimer = .500; //seconds
-        public static final double kTurnDeadband = 0.075;
-        public static final double kRPMToDownshiftAt = (DriveConstants.kLowGearSpeed*kDownshiftPercent)/(DriveConstants.kHighGearSpeed/kMotorMaxRPM);
-        public static final double kRPMToUpshiftAt = kUpshiftPercent * kMotorMaxRPM;
-        public static final double kRPMUpshiftSetPoint = (DriveConstants.kLowGearSpeed*kUpshiftPercent)/(DriveConstants.kHighGearSpeed/kMotorMaxRPM);
-        public static final double kRPMDownshiftSetPoint = kDownshiftPercent * kMotorMaxRPM;
+        public static final double kWheelDiameterMeters = kWheelDiameterIN/39.37;
+        public static final double kEncoderDistancePerPulse =
+            // Assumes the encoders are directly mounted on the wheel shafts
+            (kWheelDiameterMeters * Math.PI) / (double) kWheelEncoderCountsPerRevolution;
 
-        public static final double kShiftDeadband = 125.;
+        // These are example values only - DO NOT USE THESE FOR YOUR OWN ROBOT!
+        // These characterization values MUST be determined either experimentally or theoretically
+        // for *your* robot's drive.
+        // The Robot Characterization Toolsuite provides a convenient tool for obtaining these
+        // values for your robot.
+        public static final double ksVolts = 0.22;
+        public static final double kvVoltSecondsPerMeter = 1.98;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.2;
 
-
-
+        // Example value only - as above, this must be tuned for your drive!
+        public static final double kPDriveVel = 8.5;
     }
 
     public static final class OIConstants {
         public static final int kDriveControllerInput = 0;
         public static final int kOperatorControllerInput = 1;
+    }
+    
+
+    public static final class AutoConstants {
+        public static final double kMaxSpeedMetersPerSecond = 3;
+        public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+
+        // Reasonable baseline values for a RAMSETE follower in units of meters and seconds
+        public static final double kRamseteB = 2;
+        public static final double kRamseteZeta = 0.7;
     }
 }
