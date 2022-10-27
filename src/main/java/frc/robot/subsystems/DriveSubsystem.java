@@ -5,25 +5,24 @@
 package frc.robot.subsystems;
 
 import static frc.robot.Constants.DriveConstants.*;
+import static frc.robot.Constants.AutoConstants.*;
 
-import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
-
-import edu.wpi.first.wpilibj.interfaces.Gyro;
+import frc.robot.RobotContainer;
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-
 import edu.wpi.first.wpilibj2.command.Command;
-import com.pathplanner.lib.PathPlannerTrajectory;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import com.pathplanner.lib.commands.PPRamseteCommand;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-
+import com.pathplanner.lib.PathPlannerTrajectory;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax;
@@ -31,27 +30,25 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.shuffleboard.*;
 import java.util.*;
-
 import static java.lang.Math.*;
 
 public class DriveSubsystem extends SubsystemBase {
+  private RobotContainer m_robotContainer;
+  private HashMap<String, Command> eventMap = m_robotContainer.getEventMap();
 
   DifferentialDriveKinematics kinematics =
             new DifferentialDriveKinematics(kTrackwidthMeters);
 
   // The gyro sensor
-  private final Gyro m_gyro = new ADXRS450_Gyro();
+  AHRS m_gyro = new AHRS(SPI.Port.kMXP);
 
   // Odometry class for tracking robot pose
   private final DifferentialDriveOdometry m_odometry;
@@ -205,34 +202,30 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   // Assuming this method is part of a drivetrain subsystem that provides the necessary methods
-public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
-  // This is just an example event map. It would be better to have a constant, global event map
-  // in your code that will be used by all path following commands.
-  HashMap<String, Command> eventMap = new HashMap<>();
-  eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-  //eventMap.put("intakeDown", new IntakeDown());
+  public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
 
-  return new SequentialCommandGroup(
-      new InstantCommand(() -> {
-        // Reset odometry for the first path you run during auto
-        if(isFirstPath){
-            this.resetOdometry(traj.getInitialPose());
-        }
-      }),
-      new PPRamseteCommand(
-          traj, 
-          this::getPose, // Pose supplier
-          new RamseteController(),
-          new SimpleMotorFeedforward(DriveConstants.ksVolts, DriveConstants.kvVoltSecondsPerMeter, DriveConstants.kaVoltSecondsSquaredPerMeter),
-          this.kinematics, // DifferentialDriveKinematics
-          new PIDController(0, 0, 0), // Left controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-          new PIDController(0, 0, 0), // Right controller (usually the same values as left controller)
-          this::tankDriveVolts, // Voltage biconsumer
-          eventMap, // This argument is optional if you don't use event markers
-          this // Requires this drive subsystem
-      )
-  );
-}
+    return new SequentialCommandGroup(
+        new InstantCommand(() -> {
+          // Reset odometry for the first path you run during auto
+          if(isFirstPath){
+              this.resetOdometry(traj.getInitialPose());
+          }
+        }),
+        new PPRamseteCommand(
+            traj, 
+            this::getPose, // Pose supplier
+            new RamseteController(),
+            new SimpleMotorFeedforward(ksVolts, kvVoltSecondsPerMeter, kaVoltSecondsSquaredPerMeter),
+            this.kinematics, // DifferentialDriveKinematics
+            this::getWheelSpeeds,
+            new PIDController(kPDriveVel, 0, 0), // Left controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+            new PIDController(kPDriveVel, 0, 0), // Right controller (usually the same values as left controller)
+            this::tankDriveVolts, // Voltage biconsumer
+            eventMap, // This argument is optional if you don't use event markers
+            this // Requires this drive subsystem
+        )
+    );
+  }
 
 }
 

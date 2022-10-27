@@ -1,0 +1,61 @@
+{
+  "waypoints": [
+    {
+      "anchorPoint": {
+        "x": 10.242999917152178,
+        "y": 2.996988642903067
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 10.950537679883954,
+        "y": 2.356341814734411
+      },
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false
+    },
+    {
+      "anchorPoint": {
+        "x": 14.934005756683389,
+        "y": 1.9227022999944439
+      },
+      "prevControl": {
+        "x": 14.300781746094742,
+        "y": 1.0516793055070486
+      },
+      "nextControl": {
+        "x": 15.399982352375766,
+        "y": 2.5636703033455994
+      },
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": true
+    },
+    {
+      "anchorPoint": {
+        "x": 12.141486902602711,
+        "y": 6.215850233214138
+      },
+      "prevControl": {
+        "x": 13.4396976997079,
+        "y": 6.077251439170848
+      },
+      "nextControl": null,
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false
+    }
+  ],
+  "markers": [
+    {
+      "position": 0.40217285156250016,
+      "name": "deployIntake"
+    }
+  ]
+}

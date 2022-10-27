@@ -4,16 +4,20 @@
 
 package frc.robot;
 
-import frc.robot.commands.Auto1;
+import frc.robot.commands.Auto1Command;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.XboxController;
-import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.*;
+import frc.robot.commands.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.OIConstants;
+import java.util.*;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -23,14 +27,17 @@ import frc.robot.Constants.OIConstants;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final Command m_auto1 = new Auto1(m_robotDrive);
+  public static DriveSubsystem m_robotDrive = new DriveSubsystem();
+  public static IntakeSubsystem m_robotIntake = new IntakeSubsystem(); 
+  private static final Command m_auto1 = new Auto1Command(m_robotDrive, m_robotIntake);
 
-  PS4Controller m_driveController = new PS4Controller(OIConstants.kDriveControllerInput);
-  XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerInput);
+  private static final PS4Controller m_driveController = new PS4Controller(OIConstants.kDriveControllerInput);
+  private static final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerInput);
 
   // A chooser for autonomous commands
-  SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private static final SendableChooser<Command> m_chooser = new SendableChooser<>();
+
+  public HashMap<String, Command> eventMap = new HashMap<String, Command>();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -44,9 +51,19 @@ public class RobotContainer {
                     -m_driveController.getLeftY(), m_driveController.getRightX()),
             m_robotDrive)
     );
-
     m_chooser.setDefaultOption("Auto 1", m_auto1);
 
+    setEventMap();
+
+  }
+  
+  public void setEventMap() {
+      eventMap.put("intakeDeploy", new InstantCommand(m_robotIntake::extendIntake, m_robotIntake));
+      eventMap.put("intakeRetract", new InstantCommand(m_robotIntake::retractIntake, m_robotIntake));
+  }
+
+  public HashMap<String, Command> getEventMap() {
+      return eventMap;
   }
 
   /**
@@ -55,7 +72,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
+  private static void configureButtonBindings() {
+
   }
 
 
