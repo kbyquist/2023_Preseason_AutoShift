@@ -14,7 +14,8 @@
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false
+      "isStopPoint": false,
+      "waitTime": 0
     },
     {
       "anchorPoint": {
@@ -33,7 +34,8 @@
       "isReversal": true,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false
+      "isStopPoint": false,
+      "waitTime": 0
     },
     {
       "anchorPoint": {
@@ -52,7 +54,8 @@
       "isReversal": true,
       "velOverride": null,
       "isLocked": true,
-      "isStopPoint": true
+      "isStopPoint": true,
+      "waitTime": 3.0
     },
     {
       "anchorPoint": {
@@ -71,7 +74,8 @@
       "isReversal": false,
       "velOverride": null,
       "isLocked": true,
-      "isStopPoint": false
+      "isStopPoint": false,
+      "waitTime": 0
     },
     {
       "anchorPoint": {
@@ -90,23 +94,25 @@
       "isReversal": true,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false
+      "isStopPoint": false,
+      "waitTime": 0
     },
     {
       "anchorPoint": {
-        "x": 8.750777331019137,
-        "y": 5.4070875290155085
+        "x": 8.75467197223457,
+        "y": 5.419395394454852
       },
       "prevControl": {
-        "x": 9.102184491352988,
-        "y": 6.417346954319515
+        "x": 9.106079132568421,
+        "y": 6.429654819758858
       },
       "nextControl": null,
       "holonomicAngle": 0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false
+      "isStopPoint": false,
+      "waitTime": 0
     }
   ],
   "maxVelocity": null,
