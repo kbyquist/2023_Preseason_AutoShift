@@ -25,6 +25,7 @@ import com.pathplanner.lib.commands.PPRamseteCommand;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Encoder;
@@ -115,6 +116,10 @@ public class DriveSubsystem extends SubsystemBase {
     /* Set Motor and Encoder Inversions */
     m_rightLead.setInverted(kRightMotorInverted);
     m_leftLead.setInverted(kLeftMotorInverted);
+
+    /* Set Motor Idle Mode */
+    m_rightLead.setIdleMode(IdleMode.kCoast);
+    m_leftLead.setIdleMode(IdleMode.kCoast);
 
     /* Encoder Conversion */
     m_leftWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);

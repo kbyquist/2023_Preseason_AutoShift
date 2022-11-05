@@ -19,8 +19,6 @@ import com.pathplanner.lib.PathPlanner;
 import java.util.ArrayList;
 import com.pathplanner.lib.PathConstraints;
 
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-
 
 
 public class Auto1Command extends SequentialCommandGroup {
@@ -43,10 +41,8 @@ public class Auto1Command extends SequentialCommandGroup {
   public Auto1Command(DriveSubsystem driveSubsystem, IntakeSubsystem intakeSubsystem, ShooterSubsystem shooterSubsystem) {
     addCommands(
       driveSubsystem.followTrajectoryCommand(pathGroup1.get(0), true),
-      new ParallelRaceGroup(
-        new WaitCommand(pathGroup1.get(0).getEndWaitTimeSeconds()),
-        new RunCommand(() -> shooterSubsystem.shoot(), shooterSubsystem)
-      ),
+      new RunCommand(() -> shooterSubsystem.shootShoot(), shooterSubsystem)
+                    .withTimeout(pathGroup1.get(0).getEndWaitTimeSeconds()),
       driveSubsystem.followTrajectoryCommand(pathGroup1.get(1), false)
     );
     

@@ -78,4 +78,8 @@ public final class Constants {
     public static final class IntakeConstants {
         public static final int[] kIntakeSolenoidID = new int[] {6,7};
     }
+
+    public static final class ShooterConstants {
+        public static final int[] kShootMotorID = new int[] {10};
+    }
 }

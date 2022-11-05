@@ -28,8 +28,9 @@ import java.util.*;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   public static DriveSubsystem m_robotDrive = new DriveSubsystem();
-  public static IntakeSubsystem m_robotIntake = new IntakeSubsystem(); 
-  private static final Command m_auto1 = new Auto1Command(m_robotDrive, m_robotIntake);
+  public static IntakeSubsystem m_robotIntake = new IntakeSubsystem();
+  public static ShooterSubsystem m_robotShooter = new ShooterSubsystem(); 
+  private static final Command m_auto1 = new Auto1Command(m_robotDrive, m_robotIntake, m_robotShooter);
 
   private static final PS4Controller m_driveController = new PS4Controller(OIConstants.kDriveControllerInput);
   private static final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerInput);
@@ -45,12 +46,15 @@ public class RobotContainer {
     configureButtonBindings();
 
     m_robotDrive.setDefaultCommand(
-      new RunCommand(
-            () ->
-                m_robotDrive.arcadeDrive(
-                    -m_driveController.getLeftY(), m_driveController.getRightX()),
-            m_robotDrive)
-    );
+            new RunCommand(() -> 
+            m_robotDrive.arcadeDrive(
+              -m_driveController.getLeftY(),
+              m_driveController.getRightX()
+              )
+            ,m_robotDrive)
+            );
+    m_robotIntake.setDefaultCommand(new InstantCommand(m_robotIntake::retractIntake, m_robotIntake));
+    m_robotShooter.setDefaultCommand(new InstantCommand(m_robotShooter::shootIdle, m_robotShooter));
     m_chooser.setDefaultOption("Auto 1", m_auto1);
 
     setEventMap();
@@ -73,7 +77,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private static void configureButtonBindings() {
-
+    new JoystickButton(m_operatorController, XboxController.Button.kA.value)
+      .whenPressed(new InstantCommand(m_robotShooter::shootShoot, m_robotShooter));
   }
 
 
