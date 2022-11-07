@@ -78,10 +78,10 @@ public class DriveSubsystem extends SubsystemBase {
   
   /* Define Motors in DriveSubsystem */
   private final CANSparkMax m_leftLead = new CANSparkMax(kLeftDriveMotors[0], MotorType.kBrushless);
-  private final CANSparkMax m_leftFollow1 = new CANSparkMax(kLeftDriveMotors[1], MotorType.kBrushless);
+  private final CANSparkMax m_leftFollow1 = new CANSparkMax(kLeftDriveMotors[1], MotorType.kBrushless); //MUST BE MIDDLE MOTOR
   private final CANSparkMax m_leftFollow2 = new CANSparkMax(kLeftDriveMotors[2], MotorType.kBrushless);
   private final CANSparkMax m_rightLead = new CANSparkMax(kRightDriveMotors[0], MotorType.kBrushless);
-  private final CANSparkMax m_rightFollow1 = new CANSparkMax(kRightDriveMotors[1], MotorType.kBrushless);
+  private final CANSparkMax m_rightFollow1 = new CANSparkMax(kRightDriveMotors[1], MotorType.kBrushless); //MUST BE MIDDLE MOTOR
   private final CANSparkMax m_rightFollow2 = new CANSparkMax(kRightDriveMotors[2], MotorType.kBrushless);
 
   /* PID Controllers */
@@ -133,11 +133,11 @@ public class DriveSubsystem extends SubsystemBase {
 
     /* Create Follow Groups */
     //Left
-    m_leftFollow1.follow(m_leftLead);
-    m_leftFollow2.follow(m_leftLead);
+    m_leftFollow1.follow(m_leftLead, true); //Inverted due to gearbox geometry
+    m_leftFollow2.follow(m_leftLead, false); //Not inverted
     //Right
-    m_rightFollow1.follow(m_rightLead);
-    m_rightFollow2.follow(m_rightLead);
+    m_rightFollow1.follow(m_rightLead, true);
+    m_rightFollow2.follow(m_rightLead, false);
 
     /* Set PID constants */
     setPIDController(m_leftPIDController);
