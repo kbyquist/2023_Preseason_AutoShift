@@ -6,9 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.DriveSubsystem.ShiftStyle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.OIConstants;
 
 import static java.lang.Math.*;
@@ -54,8 +57,12 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // new JoystickButton(m_driveController, Button.kR1.value)
-    // .whenPressed();
+    new JoystickButton(m_driveController, Button.kL1.value)
+    .whenPressed(() -> m_robotDrive.setShiftStyle(ShiftStyle.STATIC_LOW))
+    .whenReleased(() -> m_robotDrive.setShiftStyle(ShiftStyle.AUTO));
+    new JoystickButton(m_driveController, Button.kR1.value)
+    .whenPressed(() -> m_robotDrive.setShiftStyle(ShiftStyle.STATIC_HIGH))
+    .whenReleased(() -> m_robotDrive.setShiftStyle(ShiftStyle.AUTO));
     // new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value);
   }
 
