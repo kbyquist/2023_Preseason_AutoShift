@@ -56,50 +56,32 @@ public class DriveSubsystem extends SubsystemBase {
 
 
   /**Define Pnuematics in DriveSubsystem */
-  // private final DoubleSolenoid p_leftShiftAB =
-  //   new DoubleSolenoid(kPcmCanID,PneumaticsModuleType.CTREPCM,kLeftShifterPortA,kLeftShifterPortB);
-  
-  // private final Solenoid p_leftShiftC = 
-  //   new Solenoid(kPcmCanID, PneumaticsModuleType.CTREPCM, kLeftShifterPortC);
+  private final DoubleSolenoid p_ShiftA =
+    new DoubleSolenoid(kPcmCanID,PneumaticsModuleType.CTREPCM,kShiftSolenoidA[0],kShiftSolenoidA[1]);
 
-  // private final DoubleSolenoid p_rightShiftAB =
-  //   new DoubleSolenoid(kPcmCanID,PneumaticsModuleType.CTREPCM,kRightShifterPortA,kRightShifterPortB);
+  private final DoubleSolenoid p_ShiftB =
+    new DoubleSolenoid(kPcmCanID,PneumaticsModuleType.CTREPCM,kShiftSolenoidB[0],kShiftSolenoidB[1]);
   
-  // private final Solenoid p_rightShiftC = 
-  //   new Solenoid(kPcmCanID,PneumaticsModuleType.CTREPCM,kRightShifterPortC);
-
   /* Define Motors in DriveSubsystem */
-  private final CANSparkMax m_leftLead = new CANSparkMax(kLeftLeadMotorID, MotorType.kBrushless);
-  private final CANSparkMax m_leftFollow1 = new CANSparkMax(kLeftFollowMotor1ID, MotorType.kBrushless);
-  private final CANSparkMax m_leftFollow2 = new CANSparkMax(kLeftFollowMotor2ID, MotorType.kBrushless);
+  private final CANSparkMax m_testLead = new CANSparkMax(kTestDriveMotors[0], MotorType.kBrushless);
+  private final CANSparkMax m_testFollow1 = new CANSparkMax(kTestDriveMotors[1], MotorType.kBrushless); //Must be middle motor
+  private final CANSparkMax m_testFollow2 = new CANSparkMax(kTestDriveMotors[2], MotorType.kBrushless);
   // private final CANSparkMax m_rightLead = new CANSparkMax(kRightLeadMotorID, MotorType.kBrushless);
   // private final CANSparkMax m_rightFollow1 = new CANSparkMax(kRightFollowMotor1ID, MotorType.kBrushless);
   // private final CANSparkMax m_rightFollow2 = new CANSparkMax(kRightFollowMotor2ID, MotorType.kBrushless);
 
   /* PID Controllers */
-  private final SparkMaxPIDController m_leftPIDController = m_leftLead.getPIDController();
-  // private final SparkMaxPIDController m_rightPIDController = m_rightLead.getPIDController();
+  private final SparkMaxPIDController m_testPIDController = m_testLead.getPIDController();
 
   /* Encoders */
-  private final RelativeEncoder m_leftMotorEncoder = m_leftLead.getEncoder();
-  // private final RelativeEncoder m_rightMotorEncoder = m_rightLead.getEncoder();
+  private final RelativeEncoder m_testMotorEncoder = m_testLead.getEncoder();
 
-  // private final Encoder m_leftWheelEncoder = 
-  //     new Encoder(
-  //       kLeftWheelEncoderPorts[0],
-  //       kLeftWheelEncoderPorts[1],
-  //       kLeftWheelEncoderReversed,
-  //       EncodingType.k1X);
-
-  // private final Encoder m_rightWheelEncoder = 
-  //     new Encoder(
-  //       kRightWheelEncoderPorts[0],
-  //       kRightWheelEncoderPorts[1],
-  //       kRightWheelEncoderReversed,
-  //       EncodingType.k1X);
-
-  //Robot Drive
-  // private final DifferentialDrive m_drive = new DifferentialDrive(m_leftLead, m_rightLead);
+  private final Encoder m_testWheelEncoder = 
+      new Encoder(
+        ktestWheelEncoderPorts[0],
+        ktestWheelEncoderPorts[1],
+        ktestWheelEncoderReversed,
+        EncodingType.k1X);
 
   // PID coefficients
   public double kP = 9e-5; //default = 6e-5 
@@ -150,43 +132,24 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     /* Restore Defaults of Motors. 
     Doing this confirms the settings will be the same no matter what physical controller is used  */
-    m_leftLead.restoreFactoryDefaults();
-    m_leftFollow1.restoreFactoryDefaults();
-    m_leftFollow2.restoreFactoryDefaults();
-    // m_rightLead.restoreFactoryDefaults();
-    // m_rightFollow1.restoreFactoryDefaults();
-    // m_rightFollow2.restoreFactoryDefaults();
+    m_testLead.restoreFactoryDefaults();
+    m_testFollow1.restoreFactoryDefaults();
+    m_testFollow2.restoreFactoryDefaults();
 
     /** Create Follow Groups */
-    //Left
-    m_leftFollow1.follow(m_leftLead);
-    m_leftFollow2.follow(m_leftLead);
-    //Right
-    // m_rightFollow1.follow(m_rightLead);
-    // m_rightFollow2.follow(m_rightLead);
+    m_testFollow1.follow(m_testLead, true); //Must be middle motor
+    m_testFollow2.follow(m_testLead, false);
 
     /** Set PID constants */
-    m_leftPIDController.setP(kP);
-    m_leftPIDController.setI(kI);
-    m_leftPIDController.setD(kD);
-    m_leftPIDController.setIZone(kIz);
-    m_leftPIDController.setFF(kFF);
-    m_leftPIDController.setOutputRange(kMinOutput, kMaxOutput);
-
-    // m_rightPIDController.setP(kP);
-    // m_rightPIDController.setI(kI);
-    // m_rightPIDController.setD(kD);
-    // m_rightPIDController.setIZone(kIz);
-    // m_rightPIDController.setFF(kFF);
-    // m_rightPIDController.setOutputRange(kMinOutput, kMaxOutput);
-
-    /** Set Motor Inversions */
-    //Right is inverted, left is not
-    // m_rightLead.setInverted(true); //only need to set Lead motors
-    m_leftLead.setInverted(kInvertMotor); //only need to set Lead motors
+    m_testPIDController.setP(kP);
+    m_testPIDController.setI(kI);
+    m_testPIDController.setD(kD);
+    m_testPIDController.setIZone(kIz);
+    m_testPIDController.setFF(kFF);
+    m_testPIDController.setOutputRange(kMinOutput, kMaxOutput);
 
     /** Encoder Conversion */
-    // m_leftWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);
+    m_testWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);
     // m_rightWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);
 
     timerRestart(m_shiftDwellTimer);
@@ -198,143 +161,131 @@ public class DriveSubsystem extends SubsystemBase {
    * @param fwd the commanded forward movement
    * @param rot the commanded rotation
    */
-  // public void arcadeDrive(double fwd, double rot) {
-  //   // Put Slew Rates on SmartDashboard for fine tuning
-  //   SmartDashboard.putNumber("Acceleration Rate", kSlewRateDrive);
-  //   SmartDashboard.putNumber("Rotation Rate", kSlewRateRotate);
-  //   // Get updated numbers for slew rates
-  //   double SlewRateDrive = SmartDashboard.getNumber("Acceleration Rate", 6);
-  //   double SlewRateRotate = SmartDashboard.getNumber("Rotation Rate", 6);
-  //   // Compare current vs new slew rates
-  //   if((SlewRateDrive != kSlewRateDrive)) {kSlewRateDrive = SlewRateDrive;}
-  //   if((SlewRateRotate != kSlewRateRotate)) {kSlewRateRotate = SlewRateRotate;}
-  //   // Update slew rate limiters
-  //   driveFilter = new SlewRateLimiter(kSlewRateDrive);
-  //   rotateFilter = new SlewRateLimiter(kSlewRateRotate);
+  public void arcadeDrive(double fwd, double rot) {
 
-  //   m_drive.arcadeDrive(driveFilter.calculate(fwd), rotateFilter.calculate(rot));
-  //   autoShift(fwd, rot); //do not apply slew rate as desired driver input is needed
-  //   lastFwd = fwd;
-  // }
+    //m_drive.arcadeDrive(driveFilter.calculate(fwd), rot);
+    autoShift(fwd, rot); //do not apply slew rate as desired driver input is needed
+    lastFwd = fwd;
+  }
 
-  // public void autoShift(double fwd, double rot) {
+  public void autoShift(double fwd, double rot) {
 
-  //   //See if robot is turning
-  //   if (abs(rot) < kTurnDeadband) {
-  //     boolRobotTurning = false;
-  //   } else {boolRobotTurning = true;}
+    //See if robot is turning
+    if (abs(rot) < kTurnDeadband) {
+      boolRobotTurning = false;
+    } else {boolRobotTurning = true;}
 
-  //   //Check if driver wants to speed up or slow down
-  //   if ((lastFwd > 0 && fwd > 0) || (lastFwd < 0 && fwd <0)) {
-  //     if ((abs(fwd) - abs(lastFwd) > kUpshiftThrottleMin) || (abs(fwd) >= .95)) {
-  //       boolThrottleReadyUpshift = true;
-  //     }
-  //     if (abs(fwd) - abs(lastFwd) < 0 || (abs(fwd) < 0.05)) {
-  //       boolThrottleReadyDownshift = true;
-  //     }
-  //   } else {boolThrottleReadyUpshift = false; boolThrottleReadyDownshift = false;}
+    //Check if driver wants to speed up or slow down
+    if ((lastFwd > 0 && fwd > 0) || (lastFwd < 0 && fwd <0)) {
+      if ((abs(fwd) - abs(lastFwd) > kUpshiftThrottleMin) || (abs(fwd) >= .95)) {
+        boolThrottleReadyUpshift = true;
+      }
+      if (abs(fwd) - abs(lastFwd) < 0 || (abs(fwd) < 0.05)) {
+        boolThrottleReadyDownshift = true;
+      }
+    } else {boolThrottleReadyUpshift = false; boolThrottleReadyDownshift = false;}
 
-  //   //Check dwell timer against constant
-  //   if (m_shiftDwellTimer.get() > kShiftDwellTimer) {
-  //     boolTimerShiftReady = true;
-  //   } else {boolTimerShiftReady = false;}
+    //Check dwell timer against constant
+    if (m_shiftDwellTimer.get() > kShiftDwellTimer) {
+      boolTimerShiftReady = true;
+    } else {boolTimerShiftReady = false;}
 
-  //   //Logic to set desired shifting state
-  //   switch (shiftingStateCurrent) {
-  //     case LOW:
-  //       if (getAverageMotorSpeed() > kRPMToUpshiftAt - kShiftDeadband && 
-  //           getAverageMotorSpeed() < kRPMToUpshiftAt + kShiftDeadband &&
-  //           !boolRobotTurning &&
-  //           boolThrottleReadyUpshift &&
-  //           boolTimerShiftReady) {
-  //             setDesiredShiftState(ShiftingState.HIGH);
-  //       }
-  //       break;
-  //     case HIGH:
-  //       if (getAverageMotorSpeed() > kRPMToDownshiftAt - kShiftDeadband && 
-  //           getAverageMotorSpeed() < kRPMToDownshiftAt + kShiftDeadband &&
-  //           !boolRobotTurning &&
-  //           boolThrottleReadyDownshift &&
-  //           boolTimerShiftReady) {
-  //             setDesiredShiftState(ShiftingState.LOW);
-  //       }
-  //       break;
-  //     default:
-  //       break;
-  //   }
+    //Logic to set desired shifting state
+    switch (shiftingStateCurrent) {
+      case LOW:
+        if (getAverageMotorSpeed() > kRPMToUpshiftAt - kShiftDeadband && 
+            getAverageMotorSpeed() < kRPMToUpshiftAt + kShiftDeadband &&
+            !boolRobotTurning &&
+            boolThrottleReadyUpshift &&
+            boolTimerShiftReady) {
+              setDesiredShiftState(ShiftingState.HIGH);
+        }
+        break;
+      case HIGH:
+        if (getAverageMotorSpeed() > kRPMToDownshiftAt - kShiftDeadband && 
+            getAverageMotorSpeed() < kRPMToDownshiftAt + kShiftDeadband &&
+            !boolRobotTurning &&
+            boolThrottleReadyDownshift &&
+            boolTimerShiftReady) {
+              setDesiredShiftState(ShiftingState.LOW);
+        }
+        break;
+      default:
+        break;
+    }
 
-  //   setShiftState();
-  // }
+    setShiftState();
+  }
 
-  // private void setCurrentShiftState(ShiftingState CurrentShiftState) {
-  //   shiftingStateCurrent = CurrentShiftState;
-  // }
+  private void setCurrentShiftState(ShiftingState CurrentShiftState) {
+    shiftingStateCurrent = CurrentShiftState;
+  }
 
-  // private ShiftingState getCurrentShiftState() {
-  //   return shiftingStateCurrent;
-  // }
+  private ShiftingState getCurrentShiftState() {
+    return shiftingStateCurrent;
+  }
 
-  // private void setDesiredShiftState(ShiftingState DesiredShiftingState) {
-  //   shiftingStateDesired = DesiredShiftingState;
-  // }
+  private void setDesiredShiftState(ShiftingState DesiredShiftingState) {
+    shiftingStateDesired = DesiredShiftingState;
+  }
 
-  // private ShiftingState getDesiredShiftState() {
-  //   return shiftingStateDesired;
-  // }
+  private ShiftingState getDesiredShiftState() {
+    return shiftingStateDesired;
+  }
 
-  // public void setShiftState() {
-  //   switch (getDesiredShiftState()) {
-  //     case LOW: //Upshifting
-  //       switch (getCurrentShiftState()) {
-  //         case HIGH:
-  //           neutralGear();
-  //           m_leftPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
-  //           m_rightPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity);
-  //           break;
-  //         case NEUTRAL:
-  //           //keep setting PID controller until RPM is within margin of wheel speed * reductions
-  //             shiftRollingRPM = getAverageWheelEncoderSpeed()*kHighGearRatio;
-  //             m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
-  //             m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
-  //           //Once within margin, set to low gear
-  //             if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
-  //                 getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
-  //               lowGear();
-  //             }
-  //         default:
-  //           //Do nothing
-  //           break;
-  //       }
-  //       break;
-  //     case HIGH: //Downshifting
-  //       switch (shiftingStateCurrent) {
-  //         case LOW:
-  //           neutralGear();
-  //           m_leftPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
-  //           m_rightPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity);
-  //           break;
-  //           case NEUTRAL:
-  //           //keep setting PID controller until RPM is within margin of wheel speed * reductions
-  //             shiftRollingRPM = getAverageWheelEncoderSpeed()*kLowGearRatio;
-  //             m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
-  //             m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
-  //           //Once within margin, set to low gear
-  //             if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
-  //                 getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
-  //               highGear();
-  //             }
-  //         default:
-  //           //Do nothing
-  //           break;
-  //       }
-  //       break;
-  //     case NEUTRAL: //Should only be if using PTO and don't want drive
-  //       if (shiftingStateCurrent != ShiftingState.NEUTRAL) {
-  //         neutralGear();
-  //       }
-  //       break;
-  //   }
-  // }
+  public void setShiftState() {
+    switch (getDesiredShiftState()) {
+      case LOW: //Upshifting
+        switch (getCurrentShiftState()) {
+          case HIGH:
+            neutralGear();
+            m_testPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+            // m_rightPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity);
+            break;
+          case NEUTRAL:
+            //keep setting PID controller until RPM is within margin of wheel speed * reductions
+              shiftRollingRPM = getAverageWheelEncoderSpeed()*kHighGearRatio;
+              m_testPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+              // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+            //Once within margin, set to low gear
+              if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
+                  getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
+                lowGear();
+              }
+          default:
+            //Do nothing
+            break;
+        }
+        break;
+      case HIGH: //Downshifting
+        switch (shiftingStateCurrent) {
+          case LOW:
+            neutralGear();
+            m_testPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+            // m_rightPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity);
+            break;
+            case NEUTRAL:
+            //keep setting PID controller until RPM is within margin of wheel speed * reductions
+              shiftRollingRPM = getAverageWheelEncoderSpeed()*kLowGearRatio;
+              m_testPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+              // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+            //Once within margin, set to low gear
+              if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
+                  getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
+                highGear();
+              }
+          default:
+            //Do nothing
+            break;
+        }
+        break;
+      case NEUTRAL: //Should only be if using PTO and don't want drive
+        if (shiftingStateCurrent != ShiftingState.NEUTRAL) {
+          neutralGear();
+        }
+        break;
+    }
+  }
 
   public void tunePID() {
     double p = pGain.getDouble(0.);
@@ -347,91 +298,78 @@ public class DriveSubsystem extends SubsystemBase {
     boolean invertMotor = motor_setInverted.getBoolean(false);
 
     // if PID coefficients on SmartDashboard have changed, write new values to controller
-    if((p != kP)) { m_leftPIDController.setP(p); kP = p; }
-    if((i != kI)) { m_leftPIDController.setI(i); kI = i; }
-    if((d != kD)) { m_leftPIDController.setD(d); kD = d; }
-    if((iz != kIz)) { m_leftPIDController.setIZone(iz); kIz = iz; }
-    if((ff != kFF)) { m_leftPIDController.setFF(ff); kFF = ff; }
+    if((p != kP)) { m_testPIDController.setP(p); kP = p; }
+    if((i != kI)) { m_testPIDController.setI(i); kI = i; }
+    if((d != kD)) { m_testPIDController.setD(d); kD = d; }
+    if((iz != kIz)) { m_testPIDController.setIZone(iz); kIz = iz; }
+    if((ff != kFF)) { m_testPIDController.setFF(ff); kFF = ff; }
     if((setPoint != kSetPoint)) { kSetPoint = setPoint; }
     if(driveReverse) {kSetPoint *= -1;}
 
     //Need to test if setting the motor setInverted property affects which way is forward for the PID setReference method
-    if((invertMotor != kInvertMotor)) { m_leftLead.setInverted(kInvertMotor); kInvertMotor = invertMotor; }
+    if((invertMotor != kInvertMotor)) { m_testLead.setInverted(kInvertMotor); kInvertMotor = invertMotor; }
     
-    m_leftPIDController.setReference(kSetPoint, CANSparkMax.ControlType.kVelocity);
+    m_testPIDController.setReference(kSetPoint, CANSparkMax.ControlType.kVelocity);
     
-    motorVelocity.setDouble(getLeftMotorRPM());
+    motorVelocity.setDouble(getTestMotorRPM());
     setPointGraph.setDouble(kSetPoint);
   }
 
   /** lowGear is full retract = Air to PORT C */
-  // public void lowGear() {
-  //   p_leftShiftAB.set(kOff); //kOff = Air is off to PORT A, off to PORT B
-  //   p_leftShiftC.set(true); //turn on PORT C air
+  public void lowGear() {
+    p_ShiftA.set(kForward);
+    p_ShiftB.set(kForward);
 
-  //   p_rightShiftAB.set(kOff); //kOff = Air is off to PORT A, off to PORT B
-  //   p_rightShiftC.set(true); //turn on PORT C air
-  //   setCurrentShiftState(ShiftingState.LOW);
-  //   timerRestart(m_shiftDwellTimer);
-  // }
-
-  // /** highGear is full extend = Air to PORT B */
-  // public void highGear(){
-  //   p_leftShiftAB.set(kReverse); //kReverse = Air is on to PORT B, off to PORT A
-  //   p_leftShiftC.set(false); //turn off PORT C air
-
-  //   p_rightShiftAB.set(kReverse); //kReverse = Air is on to PORT B, off to PORT A
-  //   p_rightShiftC.set(false); //turn off PORT C air
-  //   setCurrentShiftState(ShiftingState.HIGH);
-  //   timerRestart(m_shiftDwellTimer);
-  // }
-
-  // /** neutralGear is half extend = Air to PORT A */
-  // public void neutralGear(){
-  //   p_leftShiftAB.set(kForward); //kForward = Air is on to PORT A, off to PORT B
-  //   p_leftShiftC.set(false); //turn off PORT C air
-
-  //   p_rightShiftAB.set(kForward); //kForward = Air is on to A, off to B
-  //   p_rightShiftC.set(false); //turn off PORT C air
-  //   setCurrentShiftState(ShiftingState.NEUTRAL);
-  //   timerRestart(m_shiftDwellTimer);
-  // }
-
-  // /**
-  //  * Gets the average absolute speed of the left and right set of wheel encoders.
-  //  *
-  //  * @return the average of the two encoder readings
-  //  */
-  // public double getAverageWheelEncoderSpeed() {
-  //   return (abs(m_leftWheelEncoder.getRate()) + abs(m_rightWheelEncoder.getRate())) / 2.0;
-  // }
-
-  // /**
-  //  * Gets the average absolute rpm of the left and right transmission motors
-  //  * 
-  //  * @return the average RPMs of the motor encoders
-  //  */
-  // public double getAverageMotorSpeed() {
-  //   return (abs(getLeftMotorRPM()) + abs(getRightMotorRPM()))/2.0;
-  // }
-
-  /**
-   * Gets the left drive motor RPM
-   * 
-   * @return the left transmission motors RPM
-   */
-  public double getLeftMotorRPM() {
-    return m_leftMotorEncoder.getVelocity();
+    setCurrentShiftState(ShiftingState.LOW);
+    timerRestart(m_shiftDwellTimer);
   }
 
-  // /**
-  //  * Gets the right drive motor RPM
-  //  * 
-  //  * @return the right transmission motors RPM
-  //  */
-  // public double getRightMotorRPM() {
-  //   return m_rightMotorEncoder.getVelocity();
-  // }
+  // /** highGear is full extend = Air to PORT B */
+  public void highGear(){
+    p_ShiftA.set(kReverse);
+    p_ShiftB.set(kReverse);
+
+    setCurrentShiftState(ShiftingState.HIGH);
+    timerRestart(m_shiftDwellTimer);
+  }
+
+  // /** neutralGear is half extend = Air to PORT A */
+  public void neutralGear(){
+    p_ShiftA.set(kForward); //kForward = Air is on to PORT A, off to PORT B
+    p_ShiftB.set(kReverse); //turn off PORT C air
+
+    setCurrentShiftState(ShiftingState.NEUTRAL);
+  }
+
+  /**
+   * Gets the average absolute speed of the left and right set of wheel encoders.
+   *
+   * @return the average of the two encoder readings
+   */
+  public double getAverageWheelEncoderSpeed() {
+    return abs(m_testWheelEncoder.getRate());
+
+    // return (abs(m_leftWheelEncoder.getRate()) + abs(m_rightWheelEncoder.getRate())) / 2.0;
+  }
+
+  /**
+   * Gets the average absolute rpm of the left and right transmission motors
+   * 
+   * @return the average RPMs of the motor encoders
+   */
+  public double getAverageMotorSpeed() {
+    return abs(getTestMotorRPM());
+    // return (abs(getLeftMotorRPM()) + abs(getRightMotorRPM()))/2.0;
+  }
+
+  /**
+   * Gets the test drive motor RPM
+   * 
+   * @return the test transmission motors RPM
+   */
+  public double getTestMotorRPM() {
+    return m_testMotorEncoder.getVelocity();
+  }
 
   public void timerRestart(Timer timer) {
     timer.reset();
