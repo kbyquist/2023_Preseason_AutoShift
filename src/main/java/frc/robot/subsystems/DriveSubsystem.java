@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -80,9 +79,6 @@ public class DriveSubsystem extends SubsystemBase {
   private final CANSparkMax m_testLead = new CANSparkMax(kTestDriveMotors[0], MotorType.kBrushless);
   private final CANSparkMax m_testFollow1 = new CANSparkMax(kTestDriveMotors[1], MotorType.kBrushless); //Must be middle motor
   private final CANSparkMax m_testFollow2 = new CANSparkMax(kTestDriveMotors[2], MotorType.kBrushless);
-  // private final CANSparkMax m_rightLead = new CANSparkMax(kRightLeadMotorID, MotorType.kBrushless);
-  // private final CANSparkMax m_rightFollow1 = new CANSparkMax(kRightFollowMotor1ID, MotorType.kBrushless);
-  // private final CANSparkMax m_rightFollow2 = new CANSparkMax(kRightFollowMotor2ID, MotorType.kBrushless);
 
   /* PID Controllers */
   private final SparkMaxPIDController m_testPIDController = m_testLead.getPIDController();
@@ -262,12 +258,12 @@ public class DriveSubsystem extends SubsystemBase {
         switch (getCurrentShiftState()) {
           case HIGH:
             neutralGear();
-            m_testPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+            m_testPIDController.setReference(kRPMDownshiftSetPoint*driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
             // m_rightPIDController.setReference(kRPMDownshiftSetPoint, CANSparkMax.ControlType.kVelocity);
             break;
           case NEUTRAL:
             //keep setting PID controller until RPM is within margin of wheel speed * reductions
-              shiftRollingRPM = getAverageWheelEncoderSpeed()*kHighGearRatio;
+              shiftRollingRPM = getAverageWheelEncoderSpeed()*kHighGearRatio*driveMultiplier;
               m_testPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
               // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
             //Once within margin, set to low gear
@@ -284,12 +280,12 @@ public class DriveSubsystem extends SubsystemBase {
         switch (getCurrentShiftState()) {
           case LOW:
             neutralGear();
-            m_testPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+            m_testPIDController.setReference(kRPMUpshiftSetPoint*driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
             // m_rightPIDController.setReference(kRPMUpshiftSetPoint, CANSparkMax.ControlType.kVelocity);
             break;
             case NEUTRAL:
             //keep setting PID controller until RPM is within margin of wheel speed * reductions
-              shiftRollingRPM = getAverageWheelEncoderSpeed()*kLowGearRatio;
+              shiftRollingRPM = getAverageWheelEncoderSpeed()*kLowGearRatio*driveMultiplier;
               m_testPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
               // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
             //Once within margin, set to low gear
