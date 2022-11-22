@@ -14,7 +14,7 @@ package frc.robot;
  */
 public final class Constants {
     public static final class DriveConstants {
-        public static final int[] kLeftDriveMotors = new int[] {0,1,2};
+        public static final int[] kLeftDriveMotors = new int[] {41,42,43};
         public static final int[] kRightDriveMotors = new int[] {3,4,5};
 
         public static final int[] kShiftSolenoidA = new int[] {0,1}; //Plumb shifting cylinders to the same solenoids
@@ -34,8 +34,8 @@ public final class Constants {
         public static final double kWheelDiameter = 4.;
         public static final double kHighGearSpeed = 11.;
         public static final double kLowGearSpeed = 5.35;
-        public static final double kHighGearRatio = 7.29;
-        public static final double kLowGearRatio = 15.;
+        public static final double kHighGearRatio = 6.67;
+        public static final double kLowGearRatio = 8.;
 
         public static final double kP= 6e-5; 
         public static final double kI = 0;
@@ -49,7 +49,7 @@ public final class Constants {
     }
 
     public static final class ShiftConstants {
-        public static final int kMotorMaxRPM = 5700;
+        public static final int kMotorMaxRPM = 5700/2;
         public static final double kUpshiftPercent = .85; //percentage of max to upshift at
         public static final double kUpshiftThrottleMin = .15;
         public static final double kDownshiftThrottleMin = .1;

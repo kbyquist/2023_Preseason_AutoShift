@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.DriveSubsystem.ShiftStyle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.OIConstants;
@@ -26,7 +27,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
 
-  PS4Controller m_driveController = new PS4Controller(OIConstants.kDriveControllerInput);
+  XboxController m_driveController = new XboxController(OIConstants.kDriveControllerInput);
   XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerInput);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -38,7 +39,7 @@ public class RobotContainer {
       new RunCommand(
             () ->
                 m_robotDrive.arcadeDrive(
-                    -m_driveController.getLeftY(), m_driveController.getRightX()),
+                    -m_driveController.getLeftY()/2, m_driveController.getRightX()),
             m_robotDrive)
     );
 
@@ -51,12 +52,21 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(m_driveController, Button.kL1.value)
-    .whenPressed(() -> m_robotDrive.setShiftStyle(ShiftStyle.STATIC_LOW))
-    .whenReleased(() -> m_robotDrive.setShiftStyle(ShiftStyle.AUTO));
-    new JoystickButton(m_driveController, Button.kR1.value)
-    .whenPressed(() -> m_robotDrive.setShiftStyle(ShiftStyle.STATIC_HIGH))
-    .whenReleased(() -> m_robotDrive.setShiftStyle(ShiftStyle.AUTO));
+    new JoystickButton(m_driveController, XboxController.Button.kA.value)
+    .whenPressed(new InstantCommand(m_robotDrive::setShiftStyleLow, m_robotDrive))
+    .whenReleased(new InstantCommand(m_robotDrive::setShiftStyleAuto, m_robotDrive));
+    new JoystickButton(m_driveController, XboxController.Button.kB.value)
+    .whenPressed(new InstantCommand(m_robotDrive::setShiftStyleHigh, m_robotDrive))
+    .whenReleased(new InstantCommand(m_robotDrive::setShiftStyleAuto, m_robotDrive));
+
+    // new JoystickButton(m_driveController, XboxController.Button.kA.value)
+    // .whenPressed(new InstantCommand(m_robotDrive::highGear, m_robotDrive));
+
+    // new JoystickButton(m_driveController, XboxController.Button.kB.value)
+    // .whenPressed(new InstantCommand(m_robotDrive::lowGear, m_robotDrive));
+
+    // new JoystickButton(m_driveController, XboxController.Button.kX.value)
+    // .whenPressed(new InstantCommand(m_robotDrive::neutralGear, m_robotDrive));
     // new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value);
   }
 
