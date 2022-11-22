@@ -27,21 +27,21 @@ public final class Constants {
 
         public static final int[] kLeftWheelEncoderPorts = new int[] {0, 1};
         public static final int[] kRightWheelEncoderPorts = new int[] {2, 3};
-        public static final boolean kLeftWheelEncoderReversed = false;
+        public static final boolean kLeftWheelEncoderReversed = true;
         public static final boolean kRightWheelEncoderReversed = true;
         public static final int kWheelEncoderCountsPerRevolution = 2048;
 
         public static final double kWheelDiameter = 4.;
-        public static final double kHighGearSpeed = 11.;
-        public static final double kLowGearSpeed = 5.35;
-        public static final double kHighGearRatio = 6.67;
-        public static final double kLowGearRatio = 8.;
+        public static final double kHighGearSpeed = 14.77;
+        public static final double kLowGearSpeed = 11.36;
+        public static final double kHighGearRatio = 6.706;
+        public static final double kLowGearRatio = 8.718;
 
-        public static final double kP= 6e-5; 
-        public static final double kI = 0;
+        public static final double kP= 9e-5; 
+        public static final double kI = 8e-7;
         public static final double kD = 0; 
         public static final double kIz = 0; 
-        public static final double kFF = 0.000015; 
+        public static final double kFF = 0.00005; 
         public static final double kMaxOutput = 1; 
         public static final double kMinOutput = -1;
 
@@ -51,10 +51,10 @@ public final class Constants {
     public static final class ShiftConstants {
         public static final int kMotorMaxRPM = 5700/2;
         public static final double kUpshiftPercent = .85; //percentage of max to upshift at
-        public static final double kUpshiftThrottleMin = .15;
+        public static final double kUpshiftThrottleMin = .05;
         public static final double kDownshiftThrottleMin = .1;
         public static final double kDownshiftPercent = .55;
-        public static final double kShiftDwellTimer = .500; //seconds
+        public static final double kShiftDwellTimer = 1.500; //seconds
         public static final double kTurnDeadband = 0.075;
         public static final double kRPMToDownshiftAt = (DriveConstants.kLowGearSpeed*kDownshiftPercent)/(DriveConstants.kHighGearSpeed/kMotorMaxRPM);
         public static final double kRPMToUpshiftAt = kUpshiftPercent * kMotorMaxRPM;

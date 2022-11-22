@@ -58,16 +58,6 @@ public class RobotContainer {
     new JoystickButton(m_driveController, XboxController.Button.kB.value)
     .whenPressed(new InstantCommand(m_robotDrive::setShiftStyleHigh, m_robotDrive))
     .whenReleased(new InstantCommand(m_robotDrive::setShiftStyleAuto, m_robotDrive));
-
-    // new JoystickButton(m_driveController, XboxController.Button.kA.value)
-    // .whenPressed(new InstantCommand(m_robotDrive::highGear, m_robotDrive));
-
-    // new JoystickButton(m_driveController, XboxController.Button.kB.value)
-    // .whenPressed(new InstantCommand(m_robotDrive::lowGear, m_robotDrive));
-
-    // new JoystickButton(m_driveController, XboxController.Button.kX.value)
-    // .whenPressed(new InstantCommand(m_robotDrive::neutralGear, m_robotDrive));
-    // new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value);
   }
 
   // /**

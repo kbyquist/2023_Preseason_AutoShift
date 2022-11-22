@@ -125,6 +125,13 @@ public class DriveSubsystem extends SubsystemBase {
   private NetworkTableEntry netCurrentShiftStateEntry = tabDrive.add("Current Shift State", 1).getEntry();
   private NetworkTableEntry netDesShiftStateEntry = tabDrive.add("Desired Shift State", 1).getEntry();
   private NetworkTableEntry netShiftStyleEntry = tabDrive.add("Shift Style", 1).getEntry();
+  private NetworkTableEntry netDwellTimerEntry = tabDrive.add("Dwell Timer", 0).getEntry();
+  private NetworkTableEntry netFwdEntry = tabDrive.add("Fwd", 0).getEntry();
+  private NetworkTableEntry netLastFwdEntry = tabDrive.add("Last Fwd", 0).getEntry();
+  private NetworkTableEntry netDebugEntry = tabDrive.add("Debug Num", 0).getEntry();
+  private NetworkTableEntry netBoolThrotUpEntry = tabDrive.add("Upshift Ready", false).withWidget(BuiltInWidgets.kBooleanBox).getEntry();
+  private NetworkTableEntry netBoolThrotDownEntry = tabDrive.add("Downshift Ready", false).withWidget(BuiltInWidgets.kBooleanBox).getEntry();
+  private NetworkTableEntry netBoolTimerReadyEntry = tabDrive.add("Timer Ready", false).withWidget(BuiltInWidgets.kBooleanBox).getEntry();
 
   /** Creates a new Drivetrain. Initialize hardware here */
   public DriveSubsystem() {
@@ -157,7 +164,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     /* Encoder Conversion */
     m_leftWheelEncoder.setDistancePerPulse((360./8196)); //RPM
-    m_leftWheelEncoder.setSamplesToAverage(5);
+    m_leftWheelEncoder.setSamplesToAverage(1);
     // m_rightWheelEncoder.setDistancePerPulse(360./kWheelEncoderCountsPerRevolution);
 
     timerRestart(m_shiftDwellTimer);
@@ -199,6 +206,8 @@ public class DriveSubsystem extends SubsystemBase {
         }
         break;
     }
+    netLastFwdEntry.setNumber(lastFwd);
+    netFwdEntry.setNumber(fwd);
     lastFwd = fwd;
   }
 
@@ -206,40 +215,51 @@ public class DriveSubsystem extends SubsystemBase {
 
     //Check if driver wants to speed up or slow down
     if ((lastFwd > 0 && fwd > 0) || (lastFwd < 0 && fwd <0)) {
-      if (((abs(fwd) - abs(lastFwd)) > kUpshiftThrottleMin) || (abs(fwd) >= .95)) {
+      if (((abs(fwd) - abs(lastFwd)) > kUpshiftThrottleMin) || (abs(fwd) >= .95/2)) {
         boolThrottleReadyUpshift = true;
+        netDebugEntry.setNumber(1);
       }
       if (abs(fwd) - abs(lastFwd) < 0 || (abs(fwd) < 0.05)) {
         boolThrottleReadyDownshift = true;
+        // netDebugEntry.setNumber(2);
       }
     } else {boolThrottleReadyUpshift = false; boolThrottleReadyDownshift = false;}
+
+    netBoolThrotDownEntry.setBoolean(boolThrottleReadyDownshift);
+    netBoolThrotUpEntry.setBoolean(boolThrottleReadyUpshift);
 
     //Check dwell timer against constant
     if (m_shiftDwellTimer.get() > kShiftDwellTimer) {
       boolTimerShiftReady = true;
     } else {boolTimerShiftReady = false;}
 
+  netBoolTimerReadyEntry.setBoolean(boolTimerShiftReady);
+  netDwellTimerEntry.setNumber(m_shiftDwellTimer.get());
+
     //Logic to set desired shifting state
     switch (getCurrentShiftState()) {
       case LOW:
         if (getAverageMotorSpeed() > kRPMToUpshiftAt - kShiftDeadband && 
             getAverageMotorSpeed() < kRPMToUpshiftAt + kShiftDeadband &&
-            getTurningState() == TurningState.DRIVINGSTRAIGHT &&
+            // getTurningState() == TurningState.DRIVINGSTRAIGHT &&
             boolThrottleReadyUpshift &&
             boolTimerShiftReady) {
               setDesiredShiftState(ShiftingState.HIGH);
-        } else if (getAverageMotorSpeed() > kRPMToUpshiftAt) {setDesiredShiftState(ShiftingState.HIGH);}
+              netDebugEntry.setNumber(4);
+        } //else if (getAverageMotorSpeed() > kRPMToUpshiftAt) {setDesiredShiftState(ShiftingState.HIGH);}
         break;
       case HIGH:
         if (getAverageMotorSpeed() > kRPMToDownshiftAt - kShiftDeadband && 
             getAverageMotorSpeed() < kRPMToDownshiftAt + kShiftDeadband &&
-            getTurningState() == TurningState.DRIVINGSTRAIGHT &&
+            // getTurningState() == TurningState.DRIVINGSTRAIGHT &&
             boolThrottleReadyDownshift &&
             boolTimerShiftReady) {
               setDesiredShiftState(ShiftingState.LOW);
-        } else if (getAverageMotorSpeed() < 100) {
-          setDesiredShiftState(ShiftingState.LOW);
+              netDebugEntry.setNumber(5);
         }
+        // else if (getAverageMotorSpeed() < 100) {
+        //   setDesiredShiftState(ShiftingState.LOW);
+        // }
         break;
       default:
         break;
@@ -262,23 +282,33 @@ public class DriveSubsystem extends SubsystemBase {
       if (currentState == ShiftingState.HIGH) {
         neutralGear();
         //Set PID
+        m_leftPIDController.setReference(kRPMDownshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
       } else if (currentState == ShiftingState.NEUTRAL) {
-        //keep setting PID
+        //keep setting PID controller until RPM is within margin of wheel speed * reductions
+          shiftRollingRPM = getAverageWheelEncoderSpeed() * kLowGearRatio * driveMultiplier;
+          m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+          // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        //Once within margin, set to low gear
+          if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
+              getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
+            lowGear();
+          }
 
-        //Testing by waiting 10 loops to set desired gear
-        if (intCount >= 10) {lowGear(); intCount = 0;}
-        intCount++;
       }
     } else if (desiredState == ShiftingState.HIGH) {
       if (currentState == ShiftingState.LOW) {
         neutralGear();
-        //Set PID
+        m_leftPIDController.setReference(kRPMUpshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
       } else if (currentState == ShiftingState.NEUTRAL) {
-        //keep setting PID
-
-        //Testing by waiting 10 loops to set desired gear
-        if (intCount >= 10) {highGear(); intCount = 0;}
-        intCount++;
+        //keep setting PID controller until RPM is within margin of wheel speed * reductions
+        shiftRollingRPM = getAverageWheelEncoderSpeed() * kHighGearRatio * driveMultiplier;
+        m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        // m_rightPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        //Once within margin, set to low gear
+          if (getAverageMotorSpeed() > shiftRollingRPM - kShiftDeadband &&
+              getAverageMotorSpeed() < shiftRollingRPM + kShiftDeadband) {
+            highGear();
+          }
       }
     } else {}
 
