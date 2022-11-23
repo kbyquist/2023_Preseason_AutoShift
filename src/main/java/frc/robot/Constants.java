@@ -30,6 +30,7 @@ public final class Constants {
         public static final boolean kLeftWheelEncoderReversed = true;
         public static final boolean kRightWheelEncoderReversed = true;
         public static final int kWheelEncoderCountsPerRevolution = 2048;
+        public static final double kEncoderDistancePerPulse = (360./kWheelEncoderCountsPerRevolution)*0.1666667;
 
         public static final double kWheelDiameter = 4.;
         public static final double kHighGearSpeed = 14.77;
@@ -49,7 +50,7 @@ public final class Constants {
     }
 
     public static final class ShiftConstants {
-        public static final int kMotorMaxRPM = 5700/2;
+        public static final int kMotorMaxRPM = 5700;
         public static final double kUpshiftPercent = .85; //percentage of max to upshift at
         public static final double kUpshiftThrottleMin = .05;
         public static final double kDownshiftThrottleMin = .1;
@@ -62,9 +63,6 @@ public final class Constants {
         public static final double kRPMDownshiftSetPoint = kDownshiftPercent * kMotorMaxRPM;
 
         public static final double kShiftDeadband = 125.;
-
-
-
     }
 
     public static final class OIConstants {
