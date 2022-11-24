@@ -38,11 +38,11 @@ public final class Constants {
         public static final double kHighGearRatio = 6.706;
         public static final double kLowGearRatio = 8.718;
 
-        public static final double kP= 9e-5; 
-        public static final double kI = 8e-7;
+        // public double kP= 9e-5; 
+        public static final double kI = 0;
         public static final double kD = 0; 
         public static final double kIz = 0; 
-        public static final double kFF = 0.00005; 
+        // public double kFF = 0.00005; 
         public static final double kMaxOutput = 1; 
         public static final double kMinOutput = -1;
 
@@ -51,7 +51,7 @@ public final class Constants {
 
     public static final class ShiftConstants {
         public static final int kMotorMaxRPM = 5700;
-        public static final double kUpshiftPercent = .85; //percentage of max to upshift at
+        public static final double kUpshiftPercent = .75; //percentage of max to upshift at
         public static final double kUpshiftThrottleMin = .05;
         public static final double kDownshiftThrottleMin = .1;
         public static final double kDownshiftPercent = .55;
@@ -61,8 +61,8 @@ public final class Constants {
         public static final double kRPMToUpshiftAt = kUpshiftPercent * kMotorMaxRPM;
         public static final double kRPMUpshiftSetPoint = (DriveConstants.kLowGearSpeed*kUpshiftPercent)/(DriveConstants.kHighGearSpeed/kMotorMaxRPM);
         public static final double kRPMDownshiftSetPoint = kDownshiftPercent * kMotorMaxRPM;
-
-        public static final double kShiftDeadband = 125.;
+        public static final double kNeutralTime = 0.060;
+        public static final double kShiftDeadband = 150.;
     }
 
     public static final class OIConstants {

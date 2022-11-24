@@ -52,6 +52,9 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /* Variables */
+  public double kP = .00018;
+  public double kFF = 0.00018;
+
   boolean boolThrottleReadyUpshift;
   boolean boolThrottleReadyDownshift;
   boolean boolTimerShiftReady;
@@ -72,6 +75,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   /* Timers */
   private final Timer m_shiftDwellTimer = new Timer();
+  private final Timer m_neutralEngagedTimer = new Timer();
 
   /**Define Pnuematics in DriveSubsystem */
   private final DoubleSolenoid p_ShiftA =
@@ -114,14 +118,14 @@ public class DriveSubsystem extends SubsystemBase {
   // private final DifferentialDrive m_drive = new DifferentialDrive(m_leftLead, m_rightLead);
 
   // Creates a SlewRateLimiter that limits the rate of change of the signal to defined constant units per second
-  public double kSlewRateDrive = 3.5;
+  public double kSlewRateDrive = 1;
   SlewRateLimiter driveFilter;
 
   /** Shuffleboard Setup */
   private ShuffleboardTab tabDrive = Shuffleboard.getTab(kDriveTabName);
   private NetworkTableEntry slewRateDrive = tabDrive.add("Drive Slew Rate", kSlewRateDrive).getEntry();
-  private NetworkTableEntry netMotorRPMEntry = tabDrive.add("Current Motor RPM", 0).getEntry();
-  private NetworkTableEntry netWheelRPMEntry = tabDrive.add("Current Wheel RPM", 0).getEntry();
+  private NetworkTableEntry netMotorRPMEntry = tabDrive.add("Current Motor RPM", 0).withWidget(BuiltInWidgets.kGraph).getEntry();
+  private NetworkTableEntry netWheelRPMEntry = tabDrive.add("Current Wheel RPM", 0).withWidget(BuiltInWidgets.kGraph).getEntry();
   private NetworkTableEntry netCurrentShiftStateEntry = tabDrive.add("Current Shift State", 1).getEntry();
   private NetworkTableEntry netDesShiftStateEntry = tabDrive.add("Desired Shift State", 1).getEntry();
   private NetworkTableEntry netDwellTimerEntry = tabDrive.add("Dwell Timer", 0).getEntry();
@@ -131,7 +135,8 @@ public class DriveSubsystem extends SubsystemBase {
   private NetworkTableEntry netBoolThrotDownEntry = tabDrive.add("Downshift Ready", false).withWidget(BuiltInWidgets.kBooleanBox).getEntry();
   private NetworkTableEntry netBoolTimerReadyEntry = tabDrive.add("Timer Ready", false).withWidget(BuiltInWidgets.kBooleanBox).getEntry();
   private NetworkTableEntry netSetpointEntry = tabDrive.add("Setpoint", 0).getEntry();
-
+  private NetworkTableEntry netFFEntry = tabDrive.add("Feed Forward", kFF).getEntry();
+  private NetworkTableEntry pGain = tabDrive.add("P Gain", kP).getEntry();
   /** Creates a new Drivetrain. Initialize hardware here */
   public DriveSubsystem() {
 
@@ -157,7 +162,9 @@ public class DriveSubsystem extends SubsystemBase {
     // m_rightFollow2.follow(m_rightLead, false);
 
     /* Set PID constants */
-    setPIDController(m_leftPIDController);
+    m_leftPIDController.setP(kP);
+    m_leftPIDController.setFF(kFF);
+    //setPIDController(m_leftPIDController);
     // setPIDController(m_rightPIDController);
 
     /* Set Motor and Encoder Inversions */
@@ -187,7 +194,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void arcadeDrive(double fwd, double rot) {
     // m_drive.arcadeDrive(driveFilter.calculate(fwd), rot);
-    if (getCurrentShiftState() == getDesiredShiftState()){m_leftLead.set(fwd);}
+    if (getCurrentShiftState() == getDesiredShiftState()){m_leftLead.set(driveFilter.calculate(fwd));;}
     setTurningState(rot);
     switch (getShiftStyle()) {
       case AUTO:
@@ -221,7 +228,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     //Check if driver wants to speed up or slow down ****NEED TO CHANGE TO RPM BASED****
     if ((lastFwd > 0.05 && fwd > 0.05) || (lastFwd < 0.05 && fwd <0.05)) {
-      if (((abs(fwd) - abs(lastFwd)) > kUpshiftThrottleMin) || (abs(fwd) >= .95)) {
+      if (((abs(fwd) - abs(lastFwd)) > kUpshiftThrottleMin) || (abs(fwd) >= .75)) {
         boolThrottleReadyUpshift = true;
       } else {boolThrottleReadyUpshift = false;}
     } else {boolThrottleReadyUpshift = false;}
@@ -240,7 +247,6 @@ public class DriveSubsystem extends SubsystemBase {
     } else {boolTimerShiftReady = false;}
 
   netBoolTimerReadyEntry.setBoolean(boolTimerShiftReady);
-  netDwellTimerEntry.setNumber(m_shiftDwellTimer.get());
 
     //Logic to set desired shifting state
     switch (getCurrentShiftState()) {
@@ -275,6 +281,14 @@ public class DriveSubsystem extends SubsystemBase {
     }
   }
 
+  public void pidSet() {
+    double p = pGain.getDouble(0.);
+    double ff = netFFEntry.getDouble(0.);
+    if((p != kP)) { m_leftPIDController.setP(p); kP = p; }
+    if((ff != kFF)) { m_leftPIDController.setFF(ff); kFF = ff; }
+
+    m_leftPIDController.setReference(1000, ControlType.kVelocity);
+  }
 
 
   public void shiftSmooth() {
@@ -287,33 +301,45 @@ public class DriveSubsystem extends SubsystemBase {
       if (currentState == ShiftingState.HIGH) {
         neutralGear();
         //Set PID
-        m_leftPIDController.setReference(kRPMDownshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
-        netSetpointEntry.getDouble(kRPMDownshiftSetPoint*driveMultiplier);
+        // m_leftPIDController.setReference(kRPMDownshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+        // netSetpointEntry.setDouble(kRPMDownshiftSetPoint*driveMultiplier);
       } else if (currentState == ShiftingState.NEUTRAL) {
         //keep setting PID controller until RPM is within margin of wheel speed * reductions
-          // shiftRollingRPM = getAverageWheelEncoderSpeed() * kLowGearRatio * driveMultiplier;
-          // netSetpointEntry.setDouble(shiftRollingRPM);
-          // m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        if (m_neutralEngagedTimer.get() < kNeutralTime) {
+          //Do nothing
+        } else {
+        // m_leftPIDController.setReference(kRPMDownshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+        // netSetpointEntry.setDouble(kRPMDownshiftSetPoint*driveMultiplier);
+          shiftRollingRPM = getAverageWheelEncoderSpeed() * kLowGearRatio * driveMultiplier;
+          netSetpointEntry.setDouble(shiftRollingRPM);
+          m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        }
+
         //Once within margin, set to low gear
-          if (getAverageMotorSpeed() > abs(kRPMDownshiftSetPoint) - kShiftDeadband &&
-              getAverageMotorSpeed() < abs(kRPMDownshiftSetPoint) + kShiftDeadband) {
+          if (getAverageMotorSpeed() > abs(shiftRollingRPM) - kShiftDeadband &&
+              getAverageMotorSpeed() < abs(shiftRollingRPM) + kShiftDeadband) {
             lowGear();
           }
-
       }
     } else if (desiredState == ShiftingState.HIGH) {
       if (currentState == ShiftingState.LOW) {
         neutralGear();
-        m_leftPIDController.setReference(kRPMUpshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
-        netSetpointEntry.getDouble(kRPMUpshiftSetPoint*driveMultiplier);
+        // m_leftPIDController.setReference(kRPMUpshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+        // netSetpointEntry.setDouble(kRPMUpshiftSetPoint*driveMultiplier);
       } else if (currentState == ShiftingState.NEUTRAL) {
+        if (m_neutralEngagedTimer.get() < kNeutralTime) {
+          //Do nothing
+        } else {
         //keep setting PID controller until RPM is within margin of wheel speed * reductions
-        // shiftRollingRPM = getAverageWheelEncoderSpeed() * kHighGearRatio * driveMultiplier;
-        // netSetpointEntry.setDouble(shiftRollingRPM);
-        // m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        //   m_leftPIDController.setReference(kRPMUpshiftSetPoint * driveMultiplier, CANSparkMax.ControlType.kVelocity); //May need to deal with directionallity
+        //   netSetpointEntry.setDouble(kRPMUpshiftSetPoint*driveMultiplier);
+        shiftRollingRPM = getAverageWheelEncoderSpeed() * kHighGearRatio * driveMultiplier;
+        netSetpointEntry.setDouble(shiftRollingRPM);
+        m_leftPIDController.setReference(shiftRollingRPM, CANSparkMax.ControlType.kVelocity);
+        }
         //Once within margin, set to low gear
-          if (getAverageMotorSpeed() > abs(kRPMUpshiftSetPoint) - kShiftDeadband &&
-              getAverageMotorSpeed() < abs(kRPMUpshiftSetPoint) + kShiftDeadband) {
+          if (getAverageMotorSpeed() > abs(shiftRollingRPM) - kShiftDeadband &&
+              getAverageMotorSpeed() < abs(shiftRollingRPM) + kShiftDeadband) {
             highGear();
           }
       }
@@ -344,7 +370,7 @@ public class DriveSubsystem extends SubsystemBase {
     p_ShiftB.set(kReverse); //Air to PORT 2
 
     setCurrentShiftState(ShiftingState.NEUTRAL);
-    //timerRestart(m_shiftDwellTimer); //Do not reset timer as shift sequence is not complete
+    timerRestart(m_neutralEngagedTimer);
   }
 
   public double getAverageWheelEncoderSpeed() {
@@ -447,7 +473,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void setShiftStyle(ShiftStyle shiftingStyle) { shiftStyle = shiftingStyle;}
 
-  
   public ShiftStyle getShiftStyle() { return shiftStyle; }
   
   @Override
@@ -455,13 +480,14 @@ public class DriveSubsystem extends SubsystemBase {
     setDriveSign();
     netWheelRPMEntry.setNumber(m_leftWheelEncoder.getRate());
     netMotorRPMEntry.setNumber(getLeftMotorRPM());
+    netDwellTimerEntry.setNumber(m_neutralEngagedTimer.get());
     // This method will be called once per scheduler run
     // Get updated numbers for slew rates
-    double SlewRateDrive = slewRateDrive.getDouble(6.);
-    // Compare current vs new slew rates
-    if((SlewRateDrive != kSlewRateDrive)) {kSlewRateDrive = SlewRateDrive;}
-    // Update slew rate limiters
-    driveFilter.reset(kSlewRateDrive);
+    // double SlewRateDrive = slewRateDrive.getDouble(6.);
+    // // Compare current vs new slew rates
+    // if((SlewRateDrive != kSlewRateDrive)) {kSlewRateDrive = SlewRateDrive;}
+    // // Update slew rate limiters
+    // driveFilter.reset(kSlewRateDrive);
     //driveFilter = new SlewRateLimiter(kSlewRateDrive); //Use this if above does not work
   }
 
