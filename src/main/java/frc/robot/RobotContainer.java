@@ -55,17 +55,5 @@ public class RobotContainer {
     new JoystickButton(m_driveController, XboxController.Button.kStart.value)
     .whenPressed(new InstantCommand(() -> m_robotDrive.setShiftStyle(ShiftStyle.STATIC_NEUTRAL), m_robotDrive))
     .whenReleased(new InstantCommand(() -> m_robotDrive.setShiftStyle(ShiftStyle.AUTO), m_robotDrive));
-    // new JoystickButton(m_driveController, XboxController.Button.kA.value)
-    // .whileHeld(new RunCommand(() -> m_robotDrive.pidSet(), m_robotDrive));
   }
-
-  // /**
-  //  * Use this to pass the autonomous command to the main {@link Robot} class.
-  //  *
-  //  * @return the command to run in autonomous
-  //  */
-  // public Command getAutonomousCommand() {
-  //   // An ExampleCommand will run in autonomous
-  //   return m_autoCommand;
-  // }
 }

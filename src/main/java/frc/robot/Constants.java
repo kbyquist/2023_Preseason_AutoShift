@@ -14,21 +14,15 @@ package frc.robot;
  */
 public final class Constants {
     public static final class DriveConstants {
-        public static final int[] kLeftDriveMotors = new int[] {41,42,43};
-        public static final int[] kRightDriveMotors = new int[] {3,4,5};
 
-        public static final int[] kShiftSolenoidA = new int[] {0,1}; //Plumb shifting cylinders to the same solenoids
+        public static final int[] kShiftSolenoidA = new int[] {0,1};
         public static final int[] kShiftSolenoidB = new int[] {2,3};
-
         public static final int kPcmCanID = 33;
-
+        
+        public static final int[] kLeftDriveMotors = new int[] {41,42,43};
         public static final boolean kLeftMotorInverted = false;
-        public static final boolean kRightMotorInverted = true;
-
         public static final int[] kLeftWheelEncoderPorts = new int[] {0, 1};
-        public static final int[] kRightWheelEncoderPorts = new int[] {2, 3};
         public static final boolean kLeftWheelEncoderReversed = true;
-        public static final boolean kRightWheelEncoderReversed = true;
         public static final int kWheelEncoderCountsPerRevolution = 2048;
         public static final double kEncoderDistancePerPulse = (360./kWheelEncoderCountsPerRevolution)*0.1666667;
 
@@ -38,13 +32,8 @@ public final class Constants {
         public static final double kHighGearRatio = 6.706;
         public static final double kLowGearRatio = 8.718;
 
-        // public double kP= 9e-5; 
-        public static final double kI = 0;
-        public static final double kD = 0; 
-        public static final double kIz = 0; 
-        // public double kFF = 0.00005; 
-        public static final double kMaxOutput = 1; 
-        public static final double kMinOutput = -1;
+        public static final double kP = 0.00018; 
+        public static final double kFF = 0.00018; 
 
         public static final String kDriveTabName = "Drive Subsystem";
     }
@@ -67,6 +56,5 @@ public final class Constants {
 
     public static final class OIConstants {
         public static final int kDriveControllerInput = 0;
-        public static final int kOperatorControllerInput = 1;
     }
 }
