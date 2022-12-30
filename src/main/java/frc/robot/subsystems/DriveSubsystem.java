@@ -14,6 +14,7 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -109,6 +110,10 @@ public class DriveSubsystem extends SubsystemBase {
     m_leftLead.restoreFactoryDefaults();
     m_leftFollow1.restoreFactoryDefaults();
     m_leftFollow2.restoreFactoryDefaults();
+
+    m_leftLead.setSmartCurrentLimit(kCurrentLimit);
+    m_leftFollow1.setSmartCurrentLimit(kCurrentLimit);
+    m_leftFollow2.setSmartCurrentLimit(kCurrentLimit);
     
     /* Set Idle Mode */
     m_leftLead.setIdleMode(IdleMode.kCoast);

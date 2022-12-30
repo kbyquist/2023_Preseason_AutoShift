@@ -23,6 +23,7 @@ public final class Constants {
         public static final boolean kLeftMotorInverted = false;
         public static final int[] kLeftWheelEncoderPorts = new int[] {0, 1};
         public static final boolean kLeftWheelEncoderReversed = true;
+        public static final int kCurrentLimit = 80;
         public static final int kWheelEncoderCountsPerRevolution = 2048;
         public static final double kEncoderDistancePerPulse = (360./kWheelEncoderCountsPerRevolution)*0.1666667;
 
